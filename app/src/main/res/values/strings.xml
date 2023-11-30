@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Pizza App</string>
+
+    <!--region Top Menu Item-->
+    <string name="top_menu_item_price">$ %.2f</string>
+    <!--endregion-->
+    <!--region Hot Promo Item-->
+    <string name="hot_menu_item_price">$ %.2f</string>
+    <string name="hot_menu_item_discount_price">$ %.2f</string>
+    <!--endregion-->
 </resources>
