@@ -8,4 +8,8 @@
     <string name="hot_menu_item_price">$ %.2f</string>
     <string name="hot_menu_item_discount_price">$ %.2f</string>
     <!--endregion-->
+    <!--region Pizza Detail-->
+    <string name="pizza_detail_description">Meat lovers, get ready to meet your match! Loaded with beef sausages, ground
+beef.</string>
+    <!--endregion-->
 </resources>

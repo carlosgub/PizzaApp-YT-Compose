@@ -46,8 +46,9 @@ class MainActivity : ComponentActivity() {
                         )
                     ) { backStackEntry ->
                         DetailScreen(
-                            backStackEntry
-                                .arguments?.getParcelable(NavArgs.DetailScreen.key)!!
+                            pizza = backStackEntry
+                                .arguments?.getParcelable(NavArgs.DetailScreen.key)!!,
+                            rootNavController = rootNavController,
                         )
                     }
                 }
