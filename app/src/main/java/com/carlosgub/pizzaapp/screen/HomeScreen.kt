@@ -58,12 +58,13 @@ import androidx.navigation.compose.rememberNavController
 import com.carlosgub.pizzaapp.R
 import com.carlosgub.pizzaapp.data.DataDummy
 import com.carlosgub.pizzaapp.model.Pizza
-import com.carlosgub.pizzaapp.navegation.Screen
+import com.carlosgub.pizzaapp.navegation.MainNavigation
+import com.carlosgub.pizzaapp.navegation.RootNavigation
 import com.carlosgub.pizzaapp.ui.theme.ColorRed
 import com.carlosgub.pizzaapp.ui.theme.ColorRose
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(rootNavController: NavHostController) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -75,7 +76,7 @@ fun HomeScreen(navController: NavHostController) {
         ) {
             PizzaHomeContent(
                 onItemClicked = { pizza ->
-                    navController.navigate(Screen.Detail.route)
+                    rootNavController.navigate(RootNavigation.Detail.createRoute(pizza))
                 }
             )
         }

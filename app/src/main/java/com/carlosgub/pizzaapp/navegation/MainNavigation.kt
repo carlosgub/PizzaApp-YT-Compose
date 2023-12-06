@@ -8,38 +8,32 @@ import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.ui.graphics.vector.ImageVector
 
-sealed class Screen(
+sealed class MainNavigation(
     val route:String,
     val icon:ImageVector,
     val label:String
 ) {
-    object Home : Screen(
+    object Home : MainNavigation(
         route = "home",
         icon = Icons.Outlined.Home,
         label = "Home"
     )
 
-    object Payments : Screen(
+    object Payments : MainNavigation(
         route = "payments",
         icon = Icons.Outlined.Payments,
         label = "Payments"
     )
 
-    object History : Screen(
+    object History : MainNavigation(
         route = "history",
         icon = Icons.Outlined.ReceiptLong,
         label = "History"
     )
 
-    object Profile : Screen(
+    object Profile : MainNavigation(
         route = "profile",
         icon = Icons.Outlined.PersonOutline,
         label = "Profile"
-    )
-
-    object Detail : Screen(
-        route = "detail",
-        icon = Icons.Outlined.LocalPizza,
-        label = "Detail"
     )
 }
