@@ -2,6 +2,10 @@
 
 package com.carlosgub.pizzaapp.screen
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,20 +25,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,7 +65,13 @@ fun DetailScreen(pizza: Pizza, rootNavController: NavHostController) {
             TopAppBarDetail(rootNavController = rootNavController)
         }
     ) { paddingValues ->
-        DetailContent(pizza = pizza, paddingValues = paddingValues)
+        DetailContent(
+            pizza = pizza,
+            paddingValues = paddingValues,
+            onAddToCart = {
+                rootNavController.popBackStack()
+            }
+        )
     }
 }
 
@@ -96,7 +109,14 @@ private fun TopAppBarDetail(rootNavController: NavHostController) {
 }
 
 @Composable
-private fun DetailContent(pizza: Pizza, paddingValues: PaddingValues) {
+private fun DetailContent(
+    pizza: Pizza,
+    paddingValues: PaddingValues,
+    onAddToCart: () -> Unit
+) {
+    var count by remember {
+        mutableStateOf(1)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -114,15 +134,30 @@ private fun DetailContent(pizza: Pizza, paddingValues: PaddingValues) {
                 PizzaName(pizza.name)
                 PizzaImage()
                 PizzaInfoContainer()
-                PizzaDescriptionAndCounterContainer()
+                PizzaDescriptionAndCounterContainer(
+                    count = count,
+                    onIncreasePressed = {
+                        count++
+                    },
+                    onDecreasePressed = {
+                        if (count > 1) count--
+                    }
+                )
             }
         }
-        PizzaDetailFooter(pizza.price)
+        PizzaDetailFooter(
+            price = pizza.price,
+            count = count,
+            onAddToCart = onAddToCart
+        )
     }
 }
 
 @Composable
-private fun PizzaDetailFooter(price: Float) {
+private fun PizzaDetailFooter(
+    price: Float, count: Int,
+    onAddToCart: () -> Unit
+) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
@@ -132,19 +167,14 @@ private fun PizzaDetailFooter(price: Float) {
                 all = 24.dp
             )
     ) {
-        Text(
-            text = stringResource(
-                id = R.string.top_menu_item_price,
-                price
-            ),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = ColorRed,
-            fontSize = 36.sp
-        )
+        val priceToShow = stringResource(
+            id = R.string.top_menu_item_price,
+            price * count
+        ).toDouble()
+        AnimatedPriceText(price = priceToShow)
         Button(
             onClick = {
-
+                onAddToCart()
             },
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
@@ -187,7 +217,11 @@ private fun PizzaDetailBackground() {
 }
 
 @Composable
-private fun PizzaDescriptionAndCounterContainer() {
+private fun PizzaDescriptionAndCounterContainer(
+    count: Int,
+    onIncreasePressed: () -> Unit,
+    onDecreasePressed: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -204,6 +238,9 @@ private fun PizzaDescriptionAndCounterContainer() {
             style = MaterialTheme.typography.bodyLarge
         )
         CountCounter(
+            count = count,
+            onIncreasePressed = onIncreasePressed,
+            onDecreasePressed = onDecreasePressed,
             modifier = Modifier
                 .width(IntrinsicSize.Min)
                 .padding(horizontal = 16.dp)
@@ -298,6 +335,9 @@ private fun PizzaInfo(
 
 @Composable
 private fun CountCounter(
+    count: Int,
+    onIncreasePressed: () -> Unit,
+    onDecreasePressed: () -> Unit,
     modifier: Modifier
 ) {
     Column(
@@ -316,17 +356,11 @@ private fun CountCounter(
                     shape = RoundedCornerShape(8.dp)
                 )
                 .clickable {
-
+                    onIncreasePressed()
                 }
                 .padding(4.dp)
         )
-        Text(
-            text = "1",
-            color = Color.Black,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
+        AnimatedCounterText(count = count, modifier = Modifier.padding(vertical = 16.dp))
         Icon(
             imageVector = Icons.Filled.Remove,
             contentDescription = null,
@@ -338,9 +372,89 @@ private fun CountCounter(
                     shape = RoundedCornerShape(8.dp)
                 )
                 .clickable {
-
+                    onDecreasePressed()
                 }
                 .padding(4.dp)
         )
     }
 }
+
+@Composable
+private fun AnimatedCounterText(
+    count: Int,
+    modifier: Modifier
+) {
+    var oldCount by remember {
+        mutableStateOf(count)
+    }
+    SideEffect {
+        oldCount = count
+    }
+    Row(modifier = modifier) {
+        val countString = count.toString()
+        val oldCountString = oldCount.toString()
+        for (i in countString.indices) {
+            val oldChar = oldCountString.getOrNull(i)
+            val newChar = countString[i]
+            val char = if (oldChar == newChar) {
+                oldCountString[i]
+            } else {
+                countString[i]
+            }
+            AnimatedContent(targetState = char,
+                transitionSpec = {
+                    slideInVertically { it } togetherWith slideOutVertically { -it }
+                }) { char ->
+                Text(
+                    text = char.toString(),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnimatedPriceText(
+    price: Double
+) {
+    var oldPrice by remember {
+        mutableStateOf(price)
+    }
+    SideEffect {
+        oldPrice = price
+    }
+    Row {
+        val countString = price.toString()
+        val oldCountString = oldPrice.toString()
+        Text(
+            text = "$ ",
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = ColorRed,
+            fontSize = 36.sp
+        )
+        for (i in countString.indices) {
+            val oldChar = oldCountString.getOrNull(i)
+            val newChar = countString[i]
+            val char = if (oldChar == newChar) {
+                oldCountString[i]
+            } else {
+                countString[i]
+            }
+            AnimatedContent(targetState = char,
+                transitionSpec = {
+                    slideInVertically { it } togetherWith slideOutVertically { -it }
+                }) { char ->
+                Text(
+                    text = char.toString(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = ColorRed,
+                    fontSize = 36.sp
+                )
+            }
+        }
+    }
+}
+
